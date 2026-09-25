@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../core/theme/app_spacing.dart';
 import '../models/issue.dart';
 import '../services/github_service.dart';
-import '../widgets/checkbox_body_view.dart';
-import '../widgets/status_chip.dart';
+import '../shared/widgets/app_error_state.dart';
+import '../shared/widgets/checkbox_body_view.dart';
+import '../shared/widgets/responsive_content.dart';
+import '../shared/widgets/status_chip.dart';
+import '../shared/widgets/task_progress_bar.dart';
 
 /// Shows one issue's title and body, with GitHub task-list checkboxes
 /// rendered as real checkboxes. Tapping a checkbox updates the issue body on
@@ -90,7 +94,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Couldn't create the issue. Try again.")),
+          const SnackBar(content: Text("Couldn't save that change. Try again.")),
         );
       }
     } finally {
@@ -113,49 +117,60 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : _error != null
-                ? Center(child: Text(_error!))
+                ? AppErrorState(message: _error!, onRetry: _load)
                 : issue == null
                     ? const SizedBox.shrink()
-                    : ListView(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    : Center(
+                        child: ResponsiveContent(
+                          child: ListView(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.lg,
+                              AppSpacing.sm,
+                              AppSpacing.lg,
+                              AppSpacing.lg,
+                            ),
                             children: [
-                              Expanded(
-                                child: Text(
-                                  issue.title,
-                                  style:
-                                      Theme.of(context).textTheme.titleLarge,
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      issue.title,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge,
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  StatusChip(isOpen: issue.isOpen),
+                                ],
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              TaskProgressBar(
+                                counts: TaskCounts.fromBody(issue.body),
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.md,
+                                    vertical: AppSpacing.sm,
+                                  ),
+                                  child: CheckboxBodyView(
+                                    body: issue.body,
+                                    onToggle: _toggleLine,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              StatusChip(isOpen: issue.isOpen),
+                              const SizedBox(height: AppSpacing.xl),
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.open_in_new_rounded),
+                                label: const Text('Open on GitHub'),
+                                onPressed: _openOnGithub,
+                              ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              child: CheckboxBodyView(
-                                body: issue.body,
-                                onToggle: _toggleLine,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            height: 52,
-                            child: OutlinedButton.icon(
-                              icon: const Icon(Icons.open_in_new),
-                              label: const Text('Open on GitHub'),
-                              onPressed: _openOnGithub,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
       ),
     );

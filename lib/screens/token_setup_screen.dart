@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../config/github_config.dart';
+import '../core/theme/app_radii.dart';
+import '../core/theme/app_spacing.dart';
 import '../services/token_store.dart';
+import '../shared/widgets/loading_button.dart';
+import '../shared/widgets/responsive_content.dart';
 import 'home_screen.dart';
 
 /// Shown once, before the token exists on this device. Not a login screen -
@@ -52,70 +56,75 @@ class _TokenSetupScreenState extends State<TokenSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: widget.isUpdate ? AppBar(title: const Text('Update Token')) : null,
+      appBar: widget.isUpdate ? AppBar(title: const Text('Update token')) : null,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 32, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (!widget.isUpdate) ...[
-                Center(
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
+        child: Center(
+          child: ResponsiveContent(
+            maxWidth: 480,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.xxl,
+                AppSpacing.xl,
+                AppSpacing.xl,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (!widget.isUpdate) ...[
+                    Center(
+                      child: Container(
+                        width: 72,
+                        height: 72,
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(AppRadii.md),
+                        ),
+                        child: Image.asset(
+                          'lib/assets/icon/taskbook_icon.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
-                    child: Image.asset(
-                      'lib/assets/icon/taskbook_icon.png',
-                      fit: BoxFit.cover,
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
+                  Text(
+                    'Connect GitHub',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Paste a personal access token with Issues read/write '
+                    'access to ${GithubConfig.owner}/${GithubConfig.repo}. '
+                    "It's stored securely on this device only.",
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  TextField(
+                    controller: _controller,
+                    obscureText: true,
+                    autocorrect: false,
+                    onSubmitted: (_) => _saving ? null : _save(),
+                    decoration: InputDecoration(
+                      labelText: 'GitHub token',
+                      errorText: _error,
+                      prefixIcon: Icon(
+                        Icons.vpn_key_outlined,
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-              ],
-              Text(
-                'Connect GitHub',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                  const SizedBox(height: AppSpacing.xl),
+                  LoadingButton(
+                    onPressed: _save,
+                    loading: _saving,
+                    label: const Text('Save & continue'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Paste a personal access token with Issues read/write '
-                'access to ${GithubConfig.owner}/${GithubConfig.repo}. '
-                "It's stored securely on this device only.",
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: _controller,
-                obscureText: true,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  labelText: 'GitHub token',
-                  border: const OutlineInputBorder(),
-                  errorText: _error,
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 52,
-                child: FilledButton(
-                  onPressed: _saving ? null : _save,
-                  child: _saving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Save & Continue'),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

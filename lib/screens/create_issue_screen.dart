@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../core/theme/app_radii.dart';
+import '../core/theme/app_spacing.dart';
 import '../services/github_service.dart';
+import '../shared/widgets/loading_button.dart';
+import '../shared/widgets/responsive_content.dart';
 
 /// A very simple Markdown writing screen. Enter always inserts a newline;
 /// creating the issue is a dedicated button (and Cmd/Ctrl+Enter on desktop).
@@ -44,7 +48,7 @@ class _CreateIssueScreenState extends State<CreateIssueScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Created.')),
+        const SnackBar(content: Text('Issue created.')),
       );
       Navigator.of(context).pop(issue);
     } on GithubApiException catch (e) {
@@ -73,92 +77,89 @@ class _CreateIssueScreenState extends State<CreateIssueScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('New Issue')),
+      appBar: AppBar(title: const Text('New issue')),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextField(
-                controller: _titleController,
-                textCapitalization: TextCapitalization.sentences,
-                style: Theme.of(context).textTheme.titleMedium,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
-                ),
+        child: Center(
+          child: ResponsiveContent(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.lg,
+                AppSpacing.lg,
               ),
-              const SizedBox(height: 12),
-              if (_error != null) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _titleController,
+                    textCapitalization: TextCapitalization.sentences,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    decoration: const InputDecoration(labelText: 'Title'),
                   ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .errorContainer
-                        .withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 18,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _error!,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
+                  const SizedBox(height: AppSpacing.md),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    child: _error == null
+                        ? const SizedBox.shrink()
+                        : Container(
+                            key: ValueKey(_error),
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md + 2,
+                              vertical: AppSpacing.sm + 2,
+                            ),
+                            margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                            decoration: BoxDecoration(
+                              color: scheme.errorContainer.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(AppRadii.sm),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.error_outline_rounded,
+                                  size: 18,
+                                  color: scheme.error,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(
+                                    _error!,
+                                    style: TextStyle(color: scheme.error),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                  ),
+                  Expanded(
+                    child: Focus(
+                      onKeyEvent: _handleKey,
+                      child: TextField(
+                        controller: _bodyController,
+                        maxLines: null,
+                        expands: true,
+                        textAlignVertical: TextAlignVertical.top,
+                        textCapitalization: TextCapitalization.sentences,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        decoration: const InputDecoration(
+                          hintText: '- [ ] Task one\n- [ ] Task two',
+                          alignLabelWithHint: true,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-              Expanded(
-                child: Focus(
-                  onKeyEvent: _handleKey,
-                  child: TextField(
-                    controller: _bodyController,
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
-                    textCapitalization: TextCapitalization.sentences,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    decoration: const InputDecoration(
-                      hintText: '- [ ] Task one\n- [ ] Task two',
-                      border: OutlineInputBorder(),
-                      alignLabelWithHint: true,
                     ),
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.md),
+                  LoadingButton(
+                    onPressed: _create,
+                    loading: _creating,
+                    label: const Text('Create issue'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 56,
-                child: FilledButton(
-                  onPressed: _creating ? null : _create,
-                  child: _creating
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Create Issue'),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

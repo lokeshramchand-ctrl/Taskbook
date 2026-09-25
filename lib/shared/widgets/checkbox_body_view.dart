@@ -36,23 +36,27 @@ class CheckboxBodyView extends StatelessWidget {
     final checked = match.group(2)?.toLowerCase() == 'x';
     final label = (match.group(3) ?? '').trim();
     final interactive = onToggle != null;
+    final scheme = Theme.of(context).colorScheme;
 
-    return CheckboxListTile(
-      value: checked,
-      onChanged: interactive
-          ? (value) => onToggle!(index, value ?? false)
-          : null,
-      controlAffinity: ListTileControlAffinity.leading,
-      contentPadding: EdgeInsets.zero,
-      dense: true,
-      title: Text(
-        label,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              decoration: checked ? TextDecoration.lineThrough : null,
-              color: checked
-                  ? Theme.of(context).colorScheme.outline
-                  : null,
-            ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      child: CheckboxListTile(
+        value: checked,
+        onChanged: interactive
+            ? (value) => onToggle!(index, value ?? false)
+            : null,
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: EdgeInsets.zero,
+        dense: true,
+        title: AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 200),
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                decoration: checked ? TextDecoration.lineThrough : null,
+                color: checked ? scheme.onSurfaceVariant : scheme.onSurface,
+              ),
+          child: Text(label),
+        ),
       ),
     );
   }
