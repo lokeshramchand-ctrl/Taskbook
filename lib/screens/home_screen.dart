@@ -2,15 +2,32 @@ import 'package:flutter/material.dart';
 
 import 'create_issue_screen.dart';
 import 'issues_list_screen.dart';
+import 'token_setup_screen.dart';
 
 /// The entire home screen: a title and two buttons. No dashboard, no
-/// statistics, no navigation drawer.
+/// statistics, no navigation drawer. The only extra affordance is a way to
+/// replace the GitHub token if it's ever revoked or expires.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.vpn_key_outlined),
+            tooltip: 'Update GitHub token',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const TokenSetupScreen(isUpdate: true),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),

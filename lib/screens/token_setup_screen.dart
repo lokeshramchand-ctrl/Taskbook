@@ -8,7 +8,11 @@ import 'home_screen.dart';
 /// there is no account, no server, no multi-user concept. It simply asks for
 /// the personal access token the app needs to talk to GitHub directly.
 class TokenSetupScreen extends StatefulWidget {
-  const TokenSetupScreen({super.key});
+  /// True when reached from Home to replace an existing token, rather than
+  /// the first-run flow.
+  final bool isUpdate;
+
+  const TokenSetupScreen({super.key, this.isUpdate = false});
 
   @override
   State<TokenSetupScreen> createState() => _TokenSetupScreenState();
@@ -37,14 +41,19 @@ class _TokenSetupScreenState extends State<TokenSetupScreen> {
     });
     await TokenStore.instance.saveToken(token);
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
+    if (widget.isUpdate) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: widget.isUpdate ? AppBar(title: const Text('Update Token')) : null,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 32, 20, 20),
