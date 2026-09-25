@@ -60,9 +60,28 @@ class _TokenSetupScreenState extends State<TokenSetupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (!widget.isUpdate) ...[
+                Center(
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Image.asset(
+                      'lib/assets/icon/taskbook_icon.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
               Text(
                 'Connect GitHub',
-                style: Theme.of(context).textTheme.headlineMedium,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               const SizedBox(height: 8),
               Text(

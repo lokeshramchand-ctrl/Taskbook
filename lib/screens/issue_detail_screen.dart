@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/issue.dart';
 import '../services/github_service.dart';
 import '../widgets/checkbox_body_view.dart';
+import '../widgets/status_chip.dart';
 
 /// Shows one issue's title and body, with GitHub task-list checkboxes
 /// rendered as real checkboxes. Tapping a checkbox updates the issue body on
@@ -118,14 +119,32 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
                     : ListView(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         children: [
-                          Text(
-                            issue.title,
-                            style: Theme.of(context).textTheme.titleLarge,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  issue.title,
+                                  style:
+                                      Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              StatusChip(isOpen: issue.isOpen),
+                            ],
                           ),
                           const SizedBox(height: 16),
-                          CheckboxBodyView(
-                            body: issue.body,
-                            onToggle: _toggleLine,
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              child: CheckboxBodyView(
+                                body: issue.body,
+                                onToggle: _toggleLine,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 24),
                           SizedBox(
